@@ -1,9 +1,10 @@
 ---
 name: caveman-compress
 description: >
-  Compress natural language memory files (CLAUDE.md, todos, preferences) into caveman format
-  to save input tokens. Preserves all technical substance, code, URLs, and structure.
-  Compressed version overwrites the original file. Human-readable backup saved as FILE.original.md.
+  Safely compress natural language memory files (CLAUDE.md, AGENTS.md, notes)
+  with local-first Caveman optimizer. Preserves code, URLs, paths, commands,
+  env vars, numbers, headings, frontmatter, and protected blocks exactly.
+  Supports --check, --diff, --local-only, --llm, --restore, and --json.
   Trigger: /caveman-compress FILEPATH or "compress memory file"
 ---
 
@@ -11,101 +12,74 @@ description: >
 
 ## Purpose
 
-Compress natural language files (CLAUDE.md, todos, preferences) into caveman-speak to reduce input tokens. Compressed version overwrites original. Human-readable backup saved as `<filename>.original.md`.
+Compress prose files to reduce input/context tokens. Local deterministic compression runs first. LLM compression is opt-in only via `--llm <model>` or config; default does not call network/API.
 
 ## Trigger
 
-`/caveman-compress <filepath>` or when user asks to compress a memory file.
+`/caveman-compress <filepath>` or user asks to compress memory/prose file.
 
 ## Process
 
-1. The compression scripts live in `scripts/` (adjacent to this SKILL.md). If the path is not immediately available, search for `scripts/__main__.py` next to this SKILL.md.
+Run from repo root:
 
-2. From the directory containing this SKILL.md, run:
+```bash
+node src/commands/caveman-compress.js <absolute_or_relative_filepath> --check --local-only
+```
 
-python3 -m scripts <absolute_filepath>
+If check passes and user asked to write, run without `--check`.
 
-3. The CLI will:
-- detect file type (no tokens)
-- call Claude to compress
-- validate output (no tokens)
-- if errors: cherry-pick fix with Claude (targeted fixes only, no recompression)
-- retry up to 2 times
-- if still failing after 2 retries: report error to user, leave original file untouched
+Useful flags:
 
-4. Return result to user
+```bash
+--check
+--diff
+--out <file>
+--strict
+--local-only
+--llm claude-fable-5
+--restore
+--json
+--dry-run
+--no-cache
+```
 
-## Compression Rules
+## Safety
 
-### Remove
-- Articles: a, an, the
-- Filler: just, really, basically, actually, simply, essentially, generally
-- Pleasantries: "sure", "certainly", "of course", "happy to", "I'd recommend"
-- Hedging: "it might be worth", "you could consider", "it would be good to"
-- Redundant phrasing: "in order to" → "to", "make sure to" → "ensure", "the reason is because" → "because"
-- Connective fluff: "however", "furthermore", "additionally", "in addition"
+Before any LLM call:
 
-### Preserve EXACTLY (never modify)
-- Code blocks (fenced ``` and indented)
-- Inline code (`backtick content`)
-- URLs and links (full URLs, markdown links)
-- File paths (`/src/components/...`, `./config.yaml`)
-- Commands (`npm install`, `git commit`, `docker build`)
-- Technical terms (library names, API names, protocols, algorithms)
-- Proper nouns (project names, people, companies)
-- Dates, version numbers, numeric values
-- Environment variables (`$HOME`, `NODE_ENV`)
+- validate file extension/path;
+- scan path/content/entropy for secrets;
+- protect code, URLs, paths, commands, env vars, versions, numbers, model/API names, markdown links, and errors;
+- run deterministic compression;
+- validate strict invariants;
+- write atomically with backup only after validation.
 
-### Preserve Structure
-- All markdown headings (keep exact heading text, compress body below)
-- Bullet point hierarchy (keep nesting level)
-- Numbered lists (keep numbering)
-- Tables (compress cell text, keep structure)
-- Frontmatter/YAML headers in markdown files
+If secret scan finds high/critical risk, abort before LLM. Do not override in chat. User must rename/remove secret material or use local-only on a safe file.
 
-### Compress
-- Use short synonyms: "big" not "extensive", "fix" not "implement a solution for", "use" not "utilize"
-- Fragments OK: "Run tests before commit" not "You should always run tests before committing"
-- Drop "you should", "make sure to", "remember to" — just state the action
-- Merge redundant bullets that say the same thing differently
-- Keep one example where multiple examples show the same pattern
+## Reversibility
 
-CRITICAL RULE:
-Anything inside ``` ... ``` must be copied EXACTLY.
-Do not:
-- remove comments
-- remove spacing
-- reorder lines
-- shorten commands
-- simplify anything
+Default write creates `.caveman/backups/<timestamp>/FILE` and report under `.caveman/reports/`. Legacy direct compression also preserves `FILE.original.md` when absent. `--restore` restores latest backup or legacy original.
 
-Inline code (`...`) must be preserved EXACTLY.
-Do not modify anything inside backticks.
+Source split:
 
-If file contains code blocks:
-- Treat code blocks as read-only regions
-- Only compress text outside them
-- Do not merge sections around code
+- `CLAUDE.source.md` = human canonical source;
+- `CLAUDE.md` = compressed agent-facing file;
+- `--out` can write explicit compressed target.
 
-## Pattern
+Never compress `*.original.md`, `*.backup.md`, `.caveman/backups/**`, `.git/**`, `node_modules/**`, binary/archive/db/lock files, or known secret paths.
 
-Original:
-> You should always make sure to run the test suite before pushing any changes to the main branch. This is important because it helps catch bugs early and prevents broken builds from being deployed to production.
+## Preserve Exactly
 
-Compressed:
-> Run tests before push to main. Catch bugs early, prevent broken prod deploys.
+- fenced and indented code blocks;
+- inline code;
+- URLs and markdown link targets;
+- file paths and shell commands;
+- env vars;
+- API/model names;
+- versions, dates, numbers, units;
+- headings and frontmatter;
+- markdown table/list structure.
 
-Original:
-> The application uses a microservices architecture with the following components. The API gateway handles all incoming requests and routes them to the appropriate service. The authentication service is responsible for managing user sessions and JWT tokens.
+## Return
 
-Compressed:
-> Microservices architecture. API gateway route all requests to services. Auth service manage user sessions + JWT tokens.
-
-## Boundaries
-
-- ONLY compress natural language files (.md, .txt, .typ, .typst, .tex, extensionless)
-- NEVER modify: .py, .js, .ts, .json, .yaml, .yml, .toml, .env, .lock, .css, .html, .xml, .sql, .sh
-- If file has mixed content (prose + code), compress ONLY the prose sections
-- If unsure whether something is code or prose, leave it unchanged
-- Original file is backed up as FILE.original.md before overwriting
-- Never compress FILE.original.md (skip it)
+Report changed file, backup/report path, validation result, tests/checks run, and remaining risk. If `--json` was requested, return parseable JSON only.

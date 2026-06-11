@@ -1,0 +1,2 @@
+description = "Compress memory/prose files safely with local-first Caveman optimizer"
+prompt = "Run `node src/commands/caveman-compress.js {{args}}` from the repo root. Use `--check` first unless user explicitly asked to write. Preserve code, URLs, paths, commands, env vars, numbers, headings, and protected blocks exactly. Report JSON when `--json` passed."

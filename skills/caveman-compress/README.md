@@ -67,7 +67,7 @@ All validations passed ✅ — headings, code blocks, URLs, file paths preserved
 
 ## Security
 
-`caveman-compress` is flagged as Snyk High Risk due to subprocess and file I/O patterns detected by static analysis. This is a false positive — see [SECURITY.md](./SECURITY.md) for a full explanation of what the skill does and does not do.
+`caveman-compress` runs local deterministic compression first and blocks known secret patterns before any optional LLM call. LLM compression is off by default; use `--local-only` to guarantee no network/API use. See [SECURITY.md](./SECURITY.md) for the file I/O and subprocess model.
 
 ## Install
 
@@ -79,7 +79,7 @@ If you need local files, the compress skill lives at:
 caveman-compress/
 ```
 
-**Requires:** Python 3.10+
+**Requires:** Node.js 18+. The older Python scripts remain in `scripts/` for compatibility, but the V1 optimizer entrypoint is `node src/commands/caveman-compress.js`.
 
 ## Usage
 
@@ -92,6 +92,9 @@ Examples:
 /caveman-compress CLAUDE.md
 /caveman-compress docs/preferences.md
 /caveman-compress todos.md
+/caveman-compress CLAUDE.md --check --local-only
+/caveman-compress CLAUDE.source.md --out CLAUDE.md --strict
+/caveman-compress CLAUDE.md --restore
 ```
 
 ### What files work
@@ -108,23 +111,23 @@ Examples:
 ```
 /caveman-compress CLAUDE.md
         ↓
-detect file type        (no tokens)
+detect file type        (local)
         ↓
-Claude compresses       (tokens — one call)
+secret scan             (local, aborts high/critical)
         ↓
-validate output         (no tokens)
-  checks: headings, code blocks, URLs, file paths, bullets
+protect technical spans (local)
         ↓
-if errors: Claude fixes cherry-picked issues only   (tokens — targeted fix)
-  does NOT recompress — only patches broken parts
+deterministic compress  (local)
         ↓
-retry up to 2 times
+optional LLM pass       (only with --llm/config)
         ↓
-write compressed → CLAUDE.md
-write original   → CLAUDE.original.md
+validate output         (local)
+  checks: headings, code blocks, URLs, paths, numbers, tables
+        ↓
+atomic write + backup
 ```
 
-Only two things use tokens: initial compression + targeted fix if validation fails. Everything else is local Python.
+Default path uses zero API tokens. Only `--llm` or config-enabled LLM compression uses tokens.
 
 ## What Is Preserved
 
