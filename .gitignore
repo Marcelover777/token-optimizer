@@ -3,13 +3,14 @@ __pycache__/
 *.pyc
 .venv/
 .env.local
-caveman-compress.md
+/caveman-compress.md
+**/.caveman/
 **/.DS_Store
 .claude/worktrees/
 evals/snapshots/*.html
 evals/snapshots/*.png
 context/refs/research-brief-caveman-code-efficiency.md
-.caveman/
+/.caveman/
 
 # Build artifacts
 dist/*

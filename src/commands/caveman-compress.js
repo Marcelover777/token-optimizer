@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+const { loadLocalEnv } = require('../core/env');
 const { loadConfig } = require('../hooks/caveman-config');
 const { splitMarkdownSections } = require('../core/markdown-sections');
 const { protectSegments, restoreSegments, sha256 } = require('../core/protect');
@@ -12,6 +13,7 @@ const { atomicWriteFile, ensureBackup } = require('../core/atomic-write');
 
 const COMPRESSOR_VERSION = 1;
 const ALLOWED_EXTS = new Set(['.md', '.txt', '.typ', '.typst', '.tex', '']);
+loadLocalEnv();
 
 function usage() {
   return `Usage: node src/commands/caveman-compress.js <file> [flags]
@@ -100,7 +102,7 @@ function simpleDiff(before, after) {
 async function callAnthropicCompress(maskedText, model, mode) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY required for --llm');
   if (typeof fetch !== 'function') throw new Error('fetch unavailable in this Node runtime');
-  const prompt = `Compress prose in same language as input. Preserve every sentinel exactly. No new facts. No deletion of requirements. Return only compressed text.\n\nMode: ${mode}.\n\nText:\n<<<\n${maskedText}\n>>>`;
+  const prompt = `Compress prose in same language as input. Target 30-45% fewer characters when safe. Preserve every sentinel exactly. Keep every requirement, decision, date, metric, identifier, and action item. Prefer terse bullets or fragments over full explanatory prose. No new facts. Return only compressed text.\n\nMode: ${mode}.\n\nText:\n<<<\n${maskedText}\n>>>`;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -116,9 +118,34 @@ async function callAnthropicCompress(maskedText, model, mode) {
   });
   if (!res.ok) throw new Error(`Anthropic compression failed: HTTP ${res.status}`);
   const json = await res.json();
-  const text = json.content && json.content[0] && json.content[0].text;
+  const text = extractTextContent(json);
   if (!text || !text.trim()) throw new Error('Anthropic compression returned empty text');
   return text.trim();
+}
+
+function extractTextContent(message) {
+  const blocks = Array.isArray(message && message.content) ? message.content : [];
+  const textBlock = blocks.find(block => block && block.type === 'text' && typeof block.text === 'string');
+  return textBlock ? textBlock.text : '';
+}
+
+function splitLeadingHeading(text) {
+  const source = String(text || '');
+  const match = /^(#{1,6}[ \t]+[^\r\n]+(?:\r?\n)?)([\s\S]*)$/.exec(source);
+  if (!match) return { heading: '', body: source };
+  return { heading: match[1], body: match[2] };
+}
+
+function splitBoundaryWhitespace(text) {
+  const source = String(text || '');
+  const leading = (/^\s*/.exec(source) || [''])[0];
+  const trailing = (/\s*$/.exec(source) || [''])[0];
+  const end = source.length - trailing.length;
+  return {
+    leading,
+    core: source.slice(leading.length, end),
+    trailing,
+  };
 }
 
 async function compressSection(section, opts, config, cache) {
@@ -134,19 +161,41 @@ async function compressSection(section, opts, config, cache) {
   const cached = opts.noCache ? null : getCacheEntry(cache, key);
   if (cached && cached.compressed) return { text: cached.compressed, cacheHit: true, strategy: cached.strategy || 'cache' };
 
-  const protectedResult = protectSegments(section.text);
+  const { heading, body } = splitLeadingHeading(section.text);
+  const sourceForCompression = heading ? body : section.text;
+  const boundary = splitBoundaryWhitespace(sourceForCompression);
+  if (!boundary.core.trim()) {
+    return { text: section.text, cacheHit: false, strategy: 'local' };
+  }
+
+  const protectedResult = protectSegments(boundary.core);
   const local = compressDeterministic(protectedResult.text, { mode, protect: false });
-  let masked = local.compressed;
+  const localBody = restoreSegments(local.compressed, protectedResult.segments);
+  const localRestored = heading + boundary.leading + localBody + boundary.trailing;
+  let restored = localRestored;
   let strategy = 'local';
-  const localSavings = section.text.length ? (section.text.length - restoreSegments(masked, protectedResult.segments).length) / section.text.length : 0;
+  let fallback = null;
+  const localSavings = boundary.core.length ? (boundary.core.length - localBody.length) / boundary.core.length : 0;
 
   const allowLlm = !opts.localOnly && (opts.llmModel || config.compression.llmEnabled);
   if (allowLlm && localSavings < config.compression.minLocalSavingsToSkipLLM) {
-    masked = await callAnthropicCompress(masked, opts.llmModel || config.compression.llmModel, mode);
-    strategy = 'local+llm';
+    const llmMasked = await callAnthropicCompress(local.compressed, opts.llmModel || config.compression.llmModel, mode);
+    const llmBody = restoreSegments(llmMasked, protectedResult.segments);
+    const llmRestored = heading + boundary.leading + llmBody + boundary.trailing;
+    const llmValidation = validateCompression(section.text, llmRestored, { strict: opts.strict });
+    if (llmValidation.ok && llmRestored.length <= localRestored.length) {
+      restored = llmRestored;
+      strategy = 'local+llm';
+    } else {
+      fallback = {
+        from: 'local+llm',
+        to: 'local',
+        reason: llmValidation.ok ? 'no_savings' : 'validation_failed',
+        errors: llmValidation.errors.map(error => error.code),
+      };
+    }
   }
 
-  const restored = restoreSegments(masked, protectedResult.segments);
   putCacheEntry(cache, key, {
     source_hash: sourceHash,
     compressed_hash: sha256(restored),
@@ -154,9 +203,10 @@ async function compressSection(section, opts, config, cache) {
     compressed_chars: restored.length,
     protected_count: protectedResult.segments.length,
     strategy,
+    fallback,
     compressed: restored,
   });
-  return { text: restored, cacheHit: false, strategy };
+  return { text: restored, cacheHit: false, strategy, fallback };
 }
 
 async function compressFile(opts) {
@@ -182,7 +232,7 @@ async function compressFile(opts) {
   for (const section of sections) {
     const out = await compressSection(section, opts, config, cache);
     outputs.push(out.text);
-    sectionReports.push({ title: section.title, chars: section.text.length, compressed_chars: out.text.length, cache_hit: out.cacheHit, strategy: out.strategy });
+    sectionReports.push({ title: section.title, chars: section.text.length, compressed_chars: out.text.length, cache_hit: out.cacheHit, strategy: out.strategy, fallback: out.fallback || null });
   }
   const compressed = outputs.join('');
   const validation = validateCompression(original, compressed, { strict: opts.strict });
@@ -274,4 +324,4 @@ async function main() {
 
 if (require.main === module) main();
 
-module.exports = { parseArgs, compressFile, simpleDiff, resolveInputOutput };
+module.exports = { parseArgs, compressFile, simpleDiff, resolveInputOutput, splitLeadingHeading, splitBoundaryWhitespace, extractTextContent };

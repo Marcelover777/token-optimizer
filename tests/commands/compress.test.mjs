@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { compressFile } = require('../../src/commands/caveman-compress.js');
+const { compressFile, splitLeadingHeading, extractTextContent } = require('../../src/commands/caveman-compress.js');
 
 test('local-only check writes nothing and preserves code block', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-compress-'));
@@ -28,4 +28,29 @@ test('secret fixture aborts before compression', async () => {
   assert.equal(result.ok, false);
   assert.equal(result.reason, 'secret_scan');
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('splitLeadingHeading preserves markdown heading exactly', () => {
+  const result = splitLeadingHeading('## Title Here\n\nSure, basically compress body.');
+  assert.equal(result.heading, '## Title Here\n');
+  assert.equal(result.body, '\nSure, basically compress body.');
+});
+
+test('local-only check preserves fixture headings', async () => {
+  const fixture = path.resolve('tests/caveman-compress/project-notes.md');
+  const original = fs.readFileSync(fixture, 'utf8');
+  const result = await compressFile({ file: fixture, check: true, localOnly: true, strict: true, noCache: true });
+  assert.equal(result.ok, true);
+  assert.equal((result.compressed.match(/^#{1,6}\s+/gm) || []).length, (original.match(/^#{1,6}\s+/gm) || []).length);
+  assert.equal(fs.readFileSync(fixture, 'utf8'), original);
+});
+
+test('extractTextContent skips thinking blocks', () => {
+  const message = {
+    content: [
+      { type: 'thinking', thinking: 'hidden' },
+      { type: 'text', text: 'Compressed output.' },
+    ],
+  };
+  assert.equal(extractTextContent(message), 'Compressed output.');
 });

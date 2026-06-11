@@ -1,7 +1,9 @@
 // Anthropic token count adapter with an explicit approximation fallback.
+const { loadLocalEnv } = require('./env');
 
 const ANTHROPIC_COUNT_URL = 'https://api.anthropic.com/v1/messages/count_tokens';
 const ANTHROPIC_VERSION = '2023-06-01';
+loadLocalEnv();
 
 function estimateTokensFromText(text) {
   const raw = String(text || '');

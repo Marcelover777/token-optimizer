@@ -2,9 +2,12 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { loadLocalEnv } = require('../core/env');
 const { loadConfig, getConfigDir, readFlag } = require('../hooks/caveman-config');
 const { pricingForModel } = require('../core/pricing');
 const { scanSecrets } = require('../core/secret-scan');
+
+loadLocalEnv({ root: path.resolve(__dirname, '..', '..') });
 
 function checkFile(file) {
   return fs.existsSync(file) ? 'OK' : 'missing';
