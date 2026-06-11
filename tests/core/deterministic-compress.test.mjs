@@ -15,6 +15,22 @@ test('compresses prose while preserving protected code and URLs', () => {
   assert.doesNotMatch(out.compressed, /\bbasically\b/i);
 });
 
+test('phrase rewrites compress verbose English safely', () => {
+  const out = compressDeterministic('It is important to note that the service utilizes Redis in order to cache, and in most cases requests are able to hit the cache.', { mode: 'full' });
+  assert.match(out.compressed, /\buses\b/);
+  assert.match(out.compressed, /\bcan hit\b/);
+  assert.doesNotMatch(out.compressed, /important to note/i);
+  assert.doesNotMatch(out.compressed, /in order to/i);
+});
+
+test('PT-BR phrase rewrites work', () => {
+  const out = compressDeterministic('É importante notar que, devido ao fato de que o volume cresceu, certifique-se de revisar a fila. Além disso, basicamente tudo funciona.', { mode: 'full' });
+  assert.match(out.compressed, /porque/i);
+  assert.match(out.compressed, /garanta/);
+  assert.doesNotMatch(out.compressed, /importante notar/i);
+  assert.doesNotMatch(out.compressed, /basicamente/i);
+});
+
 test('lite keeps articles', () => {
   const out = compressDeterministic('The user can read the file.', { mode: 'lite' });
   assert.match(out.compressed, /\bThe user\b/);

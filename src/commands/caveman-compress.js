@@ -11,9 +11,20 @@ const { scanSecrets } = require('../core/secret-scan');
 const { cacheKey, loadCache, saveCache, getCacheEntry, putCacheEntry } = require('../core/cache');
 const { atomicWriteFile, ensureBackup } = require('../core/atomic-write');
 
-const COMPRESSOR_VERSION = 1;
+const COMPRESSOR_VERSION = 2;
 const ALLOWED_EXTS = new Set(['.md', '.txt', '.typ', '.typst', '.tex', '']);
+const LLM_TIMEOUT_MS = Number(process.env.CAVEMAN_LLM_TIMEOUT_MS || 60_000);
 loadLocalEnv();
+
+// Cumulative LLM usage for this process — lets callers (bench, smoke) compute
+// real spend from API-reported token counts instead of estimates.
+const llmUsage = { calls: 0, input: 0, output: 0, cache_read: 0, cache_write: 0 };
+function resetLlmUsage() {
+  llmUsage.calls = 0; llmUsage.input = 0; llmUsage.output = 0; llmUsage.cache_read = 0; llmUsage.cache_write = 0;
+}
+function getLlmUsage() {
+  return { ...llmUsage };
+}
 
 function usage() {
   return `Usage: node src/commands/caveman-compress.js <file> [flags]
@@ -28,7 +39,8 @@ Flags:
   --restore        restore latest .caveman backup or legacy .original.md
   --json           print JSON report
   --dry-run        same as --check, includes planned write target
-  --no-cache       bypass section cache`;
+  --no-cache       bypass section cache
+  --max-llm-usd <n>  stop calling the LLM once estimated spend reaches n USD`;
 }
 
 function parseArgs(argv) {
@@ -47,6 +59,7 @@ function parseArgs(argv) {
     else if (arg === '--restore') opts.restore = true;
     else if (arg === '--out') opts.out = argv[++i];
     else if (arg === '--llm') opts.llmModel = argv[++i] || 'claude-fable-5';
+    else if (arg === '--max-llm-usd') opts.maxLlmUsd = Number(argv[++i]);
     else if (arg.startsWith('--')) throw new Error(`unknown flag: ${arg}`);
     else positional.push(arg);
   }
@@ -99,28 +112,95 @@ function simpleDiff(before, after) {
   return out.join('\n');
 }
 
-async function callAnthropicCompress(maskedText, model, mode) {
+function buildCompressPrompt(maskedText, mode, repair) {
+  const rules = [
+    'Rewrite the text below as maximally terse caveman-style technical notes, in the SAME language as the input.',
+    'Hard rules:',
+    '- Cut 40-60% of characters where safe. Keep every requirement, decision, date, metric, identifier, error, and action item.',
+    '- Tokens matching __CAVEMAN_PROTECTED_NNNNNN_hhhhhhhh__ are frozen content. Reproduce each one byte-exact, same count, same order. Never invent, drop, merge, split, or edit them.',
+    '- Keep markdown structure identical: same number of list items with the same markers (-, *, 1.) and same indentation; same table rows and column count; do not add or remove headings.',
+    '- Compress the WORDS inside each bullet/cell, never the structure around them.',
+    '- No new facts, no commentary, no preamble, no code fences around the answer. Return only the rewritten text.',
+  ];
+  if (repair) {
+    rules.push(
+      '',
+      'REPAIR PASS. Your previous attempt violated these invariants: ' + repair.errors.map(e => `${e.code} (${e.message})`).join('; ') + '.',
+      'Fix every violation. When in doubt, copy the violating region verbatim from the original text. Compression is secondary to exact preservation in this pass.',
+      '',
+      'Previous attempt:',
+      '<<<',
+      repair.previous,
+      '>>>'
+    );
+  }
+  return `${rules.join('\n')}\n\nMode: ${mode}.\n\nText:\n<<<\n${maskedText}\n>>>`;
+}
+
+async function callAnthropicCompress(maskedText, model, mode, opts = {}) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY required for --llm');
   if (typeof fetch !== 'function') throw new Error('fetch unavailable in this Node runtime');
-  const prompt = `Compress prose in same language as input. Target 30-45% fewer characters when safe. Preserve every sentinel exactly. Keep every requirement, decision, date, metric, identifier, and action item. Prefer terse bullets or fragments over full explanatory prose. No new facts. Return only compressed text.\n\nMode: ${mode}.\n\nText:\n<<<\n${maskedText}\n>>>`;
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: Math.max(1024, Math.min(8192, Math.ceil(maskedText.length / 2))),
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-  if (!res.ok) throw new Error(`Anthropic compression failed: HTTP ${res.status}`);
+  const prompt = buildCompressPrompt(maskedText, mode, opts.repair);
+  const controller = new AbortController();
+  const timeoutMs = opts.timeoutMs || LLM_TIMEOUT_MS;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: Math.max(1024, Math.min(8192, Math.ceil(maskedText.length / 2))),
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      const e = new Error(`Anthropic compression timed out after ${timeoutMs}ms`);
+      e.code = 'timeout';
+      throw e;
+    }
+    const e = new Error(`Anthropic compression request failed: ${error.message}`);
+    e.code = 'api_failure';
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!res.ok) {
+    const e = new Error(`Anthropic compression failed: HTTP ${res.status}`);
+    e.code = 'api_failure';
+    throw e;
+  }
   const json = await res.json();
+  const usage = json.usage || {};
+  llmUsage.calls += 1;
+  llmUsage.input += usage.input_tokens || 0;
+  llmUsage.output += usage.output_tokens || 0;
+  llmUsage.cache_read += usage.cache_read_input_tokens || 0;
+  llmUsage.cache_write += usage.cache_creation_input_tokens || 0;
   const text = extractTextContent(json);
-  if (!text || !text.trim()) throw new Error('Anthropic compression returned empty text');
+  if (!text || !text.trim()) {
+    const e = new Error('Anthropic compression returned empty text');
+    e.code = 'api_failure';
+    throw e;
+  }
   return text.trim();
+}
+
+function makeLlmBudget(maxUsd, model) {
+  const { pricingForModel, costForUsage } = require('../core/pricing');
+  const pricing = pricingForModel(model);
+  return {
+    maxUsd,
+    spent() { return pricing ? (costForUsage(getLlmUsage(), pricing) || 0) : 0; },
+    exhausted() { return this.spent() >= maxUsd; },
+  };
 }
 
 function extractTextContent(message) {
@@ -175,25 +255,74 @@ async function compressSection(section, opts, config, cache) {
   let restored = localRestored;
   let strategy = 'local';
   let fallback = null;
+  let llmAttempts = 0;
   const localSavings = boundary.core.length ? (boundary.core.length - localBody.length) / boundary.core.length : 0;
 
   const allowLlm = !opts.localOnly && (opts.llmModel || config.compression.llmEnabled);
   if (allowLlm && localSavings < config.compression.minLocalSavingsToSkipLLM) {
-    const llmMasked = await callAnthropicCompress(local.compressed, opts.llmModel || config.compression.llmModel, mode);
-    const llmBody = restoreSegments(llmMasked, protectedResult.segments);
-    const llmRestored = heading + boundary.leading + llmBody + boundary.trailing;
-    const llmValidation = validateCompression(section.text, llmRestored, { strict: opts.strict });
-    if (llmValidation.ok && llmRestored.length <= localRestored.length) {
-      restored = llmRestored;
-      strategy = 'local+llm';
+    const model = opts.llmModel || config.compression.llmModel;
+    if (opts.secretRisk) {
+      fallback = { from: 'local+llm', to: 'local', reason: 'secret_risk', attempts: 0 };
+    } else if (opts.budget && opts.budget.exhausted && opts.budget.exhausted()) {
+      fallback = { from: 'local+llm', to: 'local', reason: 'budget_exhausted', attempts: 0 };
     } else {
-      fallback = {
-        from: 'local+llm',
-        to: 'local',
-        reason: llmValidation.ok ? 'no_savings' : 'validation_failed',
-        errors: llmValidation.errors.map(error => error.code),
-      };
+      try {
+        llmAttempts = 1;
+        let llmMasked = await callAnthropicCompress(local.compressed, model, mode);
+        let llmRestored = heading + boundary.leading + restoreSegments(llmMasked, protectedResult.segments) + boundary.trailing;
+        let llmValidation = validateCompression(section.text, llmRestored, { strict: opts.strict });
+        if (!llmValidation.ok && (!opts.budget || !opts.budget.exhausted || !opts.budget.exhausted())) {
+          // One stricter repair pass before giving up — the model gets told
+          // exactly which invariants it broke.
+          llmAttempts = 2;
+          llmMasked = await callAnthropicCompress(local.compressed, model, mode, {
+            repair: { errors: llmValidation.errors, previous: llmMasked },
+          });
+          llmRestored = heading + boundary.leading + restoreSegments(llmMasked, protectedResult.segments) + boundary.trailing;
+          llmValidation = validateCompression(section.text, llmRestored, { strict: opts.strict });
+        }
+        if (llmValidation.ok && llmRestored.length <= localRestored.length) {
+          restored = llmRestored;
+          strategy = 'local+llm';
+        } else {
+          fallback = {
+            from: 'local+llm',
+            to: 'local',
+            reason: llmValidation.ok ? 'no_savings' : 'validation_failed',
+            attempts: llmAttempts,
+            errors: llmValidation.errors.map(error => error.code),
+          };
+        }
+      } catch (error) {
+        fallback = {
+          from: 'local+llm',
+          to: 'local',
+          reason: error.code === 'timeout' ? 'timeout' : 'api_failure',
+          attempts: llmAttempts,
+          message: String(error.message || '').slice(0, 200),
+        };
+      }
     }
+  }
+
+  // Final safety net: the accepted output must pass the same invariants as the
+  // whole file, or we keep the section untouched. Only validated outputs are
+  // ever cached.
+  const sectionValidation = validateCompression(section.text, restored, { strict: opts.strict });
+  if (!sectionValidation.ok) {
+    return {
+      text: section.text,
+      cacheHit: false,
+      strategy: 'original',
+      llmAttempts,
+      fallback: {
+        from: strategy,
+        to: 'original',
+        reason: 'validation_failed',
+        attempts: llmAttempts,
+        errors: sectionValidation.errors.map(error => error.code),
+      },
+    };
   }
 
   putCacheEntry(cache, key, {
@@ -206,7 +335,7 @@ async function compressSection(section, opts, config, cache) {
     fallback,
     compressed: restored,
   });
-  return { text: restored, cacheHit: false, strategy, fallback };
+  return { text: restored, cacheHit: false, strategy, fallback, llmAttempts };
 }
 
 async function compressFile(opts) {
@@ -220,6 +349,12 @@ async function compressFile(opts) {
   if (!secretScan.ok && config.security.abortOnSecret) {
     return { ok: false, aborted: true, reason: 'secret_scan', secretScan };
   }
+  // Secret findings that did not abort (abortOnSecret=false) still block the
+  // LLM path unless the user explicitly allowed it.
+  const secretRisk = !secretScan.ok && !config.security.allowLLMForSensitiveFiles;
+  if (!opts.budget && Number.isFinite(opts.maxLlmUsd) && opts.maxLlmUsd > 0) {
+    opts = { ...opts, budget: makeLlmBudget(opts.maxLlmUsd, opts.llmModel || config.compression.llmModel) };
+  }
 
   const cachePath = path.join(path.dirname(io.target), '.caveman', 'cache', 'compress-v1.json');
   const cache = opts.noCache ? { schema_version: 1, entries: {} } : loadCache(cachePath);
@@ -229,17 +364,24 @@ async function compressFile(opts) {
   const sections = splitMarkdownSections(original);
   const outputs = [];
   const sectionReports = [];
+  const fallbackCounts = {};
+  let llmAccepted = 0;
+  let llmAttempted = 0;
+  const sectionOpts = { ...opts, secretRisk };
   for (const section of sections) {
-    const out = await compressSection(section, opts, config, cache);
+    const out = await compressSection(section, sectionOpts, config, cache);
     outputs.push(out.text);
-    sectionReports.push({ title: section.title, chars: section.text.length, compressed_chars: out.text.length, cache_hit: out.cacheHit, strategy: out.strategy, fallback: out.fallback || null });
+    if (out.llmAttempts) llmAttempted++;
+    if (out.strategy === 'local+llm') llmAccepted++;
+    if (out.fallback) fallbackCounts[out.fallback.reason] = (fallbackCounts[out.fallback.reason] || 0) + 1;
+    sectionReports.push({ title: section.title, chars: section.text.length, compressed_chars: out.text.length, cache_hit: out.cacheHit, strategy: out.strategy, llm_attempts: out.llmAttempts || 0, fallback: out.fallback || null });
   }
   const compressed = outputs.join('');
   const validation = validateCompression(original, compressed, { strict: opts.strict });
   const ok = validation.ok;
 
   const report = {
-    schema_version: 1,
+    schema_version: 2,
     ok,
     source: io.source,
     target: io.target,
@@ -247,6 +389,13 @@ async function compressFile(opts) {
     dry_run: opts.dryRun || opts.check,
     local_only: opts.localOnly,
     secret_scan: secretScan,
+    secret_risk_blocked_llm: secretRisk && !opts.localOnly,
+    llm: {
+      sections_attempted: llmAttempted,
+      sections_accepted: llmAccepted,
+      fallback_counts: fallbackCounts,
+      usage: getLlmUsage(),
+    },
     validation,
     sections: sectionReports,
     metrics: validation.metrics,
@@ -324,4 +473,4 @@ async function main() {
 
 if (require.main === module) main();
 
-module.exports = { parseArgs, compressFile, simpleDiff, resolveInputOutput, splitLeadingHeading, splitBoundaryWhitespace, extractTextContent };
+module.exports = { parseArgs, compressFile, simpleDiff, resolveInputOutput, splitLeadingHeading, splitBoundaryWhitespace, extractTextContent, buildCompressPrompt, makeLlmBudget, getLlmUsage, resetLlmUsage };

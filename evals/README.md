@@ -62,6 +62,23 @@ uv run --with tiktoken python evals/measure.py
 
 Append a line to `prompts/en.txt`, then refresh the snapshot.
 
+## Budgeted online bench (Fable optimizer)
+
+`node src/commands/caveman-bench.js --online [--max-spend 1] [--model claude-fable-5] [--report]`
+hits the Anthropic API directly (needs `ANTHROPIC_API_KEY`) and measures
+two surfaces with one shared spend guard:
+
+- **Output arms** — `baseline` (no system prompt) vs the frozen V1 MICRO
+  line vs the current MICRO line, over a mixed EN / PT-BR / agentic prompt
+  set. Reports mean, p50, and worst-case output-token reduction.
+- **Doc compression** — local-only vs hybrid (`--llm`) compression on
+  `evals/fixtures/docs/*.md`, with per-file fallback counts.
+
+Spend is computed from API-reported usage via `src/core/pricing.js`.
+Default budget is **$1**, hard cap **$15** — the run degrades gracefully
+(skips remaining calls) when the budget is reached. `--report` writes
+`evals/reports/fable5-<date>-online.json`.
+
 ## Adding a skill
 
 Drop a `skills/<name>/SKILL.md`, then refresh the snapshot. `llm_run.py`

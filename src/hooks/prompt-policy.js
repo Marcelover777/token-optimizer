@@ -66,9 +66,9 @@ function readLastAssistantFromTranscript(transcriptPath) {
 }
 
 function reinforcementText(mode) {
-  return 'CAVEMAN MODE ACTIVE (' + mode + '). Drop filler/pleasantries/hedging' +
-    (mode === 'lite' ? '. Keep articles/grammar.' : '/articles. Fragments OK.') +
-    ' Preserve code/API/path/URL/number/error exact. Normal prose for safety/destructive ambiguity.';
+  return 'CAVEMAN ' + mode + ' still on: terse, answer-first, no filler' +
+    (mode === 'lite' ? ', keep grammar' : ', fragments OK') +
+    '. Code/paths/numbers/errors exact. Plain prose for safety.';
 }
 
 function shouldReinforce({ prompt, activeMode, config, state, transcript }) {

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "mode": "offline",
   "snapshots_present": true,
   "arms": [
@@ -50,5 +50,9 @@
       "chars": 304
     }
   ],
+  "injection_overhead": {
+    "micro_full_line_tokens": 55,
+    "v1_micro_full_line_tokens": 52
+  },
   "recommendation": "Use fable-micro-full as default until online evals prove hybrid/adaptive quality >=4."
 }

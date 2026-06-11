@@ -46,12 +46,12 @@ function readMicroRules(label) {
     if (hit) return hit;
   }
   const fallback = {
-    lite: 'CAVEMAN lite. Concise professional. Drop filler/pleasantry/hedge. Keep grammar/articles. Preserve code, paths, URLs, numbers, errors exact. Normal prose for safety/destructive/ambiguous multi-step.',
-    full: 'CAVEMAN full. Terse. Drop filler/pleasantry/hedge/articles. Fragments OK. Preserve code, ids, paths, URLs, numbers, errors exact. Normal prose for safety/destructive/ambiguous multi-step. Persist until off.',
-    ultra: 'CAVEMAN ultra. Telegraphic. Abbrev common prose. Use arrows. One word when enough. Never abbrev code/API/error/path/URL/number. Normal prose for safety/destructive/ambiguity.',
-    'wenyan-lite': 'CAVEMAN wenyan-lite. Semi-classical concise mode. Preserve technical terms/code exactly. Normal prose for safety/destructive/ambiguity.',
-    'wenyan-full': 'CAVEMAN wenyan-full. Classical terse mode. Preserve technical terms/code exactly. Normal prose for safety/destructive/ambiguity.',
-    'wenyan-ultra': 'CAVEMAN wenyan-ultra. Extreme classical compression. Preserve technical terms/code exactly. Normal prose for safety/destructive/ambiguity.',
+    lite: 'CAVEMAN lite. Concise pro prose. Answer first, no recap/summary close. Cut filler/pleasantry/hedge. Keep grammar+articles. Code/paths/URLs/numbers/errors exact. Normal prose for safety/destructive/ambiguous.',
+    full: 'CAVEMAN full. Terse fragments. Answer only what asked — no preamble, no recap, no extras. Cut filler/hedge/articles. Code/paths/URLs/numbers/errors exact. Normal prose for safety/destructive/ambiguous. Persist until off.',
+    ultra: 'CAVEMAN ultra. Telegraphic. Answer only. Arrows for causality. One word when enough. Never abbrev code/API/error/path/URL/number. Normal prose for safety/destructive/ambiguous.',
+    'wenyan-lite': 'CAVEMAN wenyan-lite. Semi-classical concise. Cut filler/hedge. Code/paths/URLs/numbers/errors exact. Normal prose for safety/destructive/ambiguous.',
+    'wenyan-full': 'CAVEMAN wenyan-full. Classical terse. Max concise, technical claims intact. Code/paths/URLs/numbers/errors exact. Normal prose for safety/destructive/ambiguous.',
+    'wenyan-ultra': 'CAVEMAN wenyan-ultra. Extreme classical compression. Code/API/error/path/URL/number exact. Normal prose for safety/destructive/ambiguous.',
   };
   return fallback[label] || fallback.full;
 }
