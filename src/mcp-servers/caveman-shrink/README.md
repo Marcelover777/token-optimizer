@@ -32,7 +32,7 @@ Wrap any MCP server in your Claude Code (or other client) config:
 }
 ```
 
-The proxy spawns the upstream as a subprocess, intercepts `tools/list`, `prompts/list`, `resources/list` responses, and rewrites the `description` fields (and anything else you list in `CAVEMAN_SHRINK_FIELDS`).
+The proxy spawns the upstream as a subprocess, maps request `id -> method`, intercepts `tools/list`, `prompts/list`, `resources/list`, and `resources/templates/list` responses, then rewrites only safe top-level `description` fields by default.
 
 ## What it does NOT touch
 
@@ -40,6 +40,7 @@ By design, v1 is conservative:
 
 - **Request bodies** going to the upstream are passed through unchanged.
 - **Tool call responses** (`tools/call`) are passed through unchanged. We don't want to risk silently mutating the data the upstream returns to the model.
+- **`inputSchema`** is preserved by default. If validation fails, original response passes through.
 - **Identifiers, URLs, paths, and code-looking tokens** inside any prose are preserved exactly. Same boundaries as the parent caveman skill.
 
 ## Configuration
@@ -47,6 +48,9 @@ By design, v1 is conservative:
 | Env var | Default | What |
 |---|---|---|
 | `CAVEMAN_SHRINK_FIELDS` | `description` | Comma-separated list of field names to compress |
+| `CAVEMAN_SHRINK_FRAMING` | `auto` | `auto`, `content-length`, or `newline-json` |
+| `CAVEMAN_SHRINK_CACHE` | `1` | Set to `0` to disable `~/.cache/caveman/mcp-shrink-v1.json` |
+| `CAVEMAN_SHRINK_NESTED_SCHEMA` | `0` | Set to `1` to opt into nested schema compression |
 | `CAVEMAN_SHRINK_DEBUG` | `0` | Set to `1` to log per-field compression deltas to stderr |
 
 ## Status

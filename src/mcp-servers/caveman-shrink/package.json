@@ -25,6 +25,9 @@
   "files": [
     "index.js",
     "compress.js",
+    "framing.js",
+    "transform.js",
+    "cache.js",
     "README.md"
   ]
 }
