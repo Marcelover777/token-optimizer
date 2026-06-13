@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JuliusBrussee/caveman/stargazers"><img src="https://img.shields.io/github/stars/JuliusBrussee/caveman?style=flat&color=yellow" alt="Stars"></a>
-  <a href="https://github.com/JuliusBrussee/caveman/commits/main"><img src="https://img.shields.io/github/last-commit/JuliusBrussee/caveman?style=flat" alt="Last Commit"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/JuliusBrussee/caveman?style=flat" alt="License"></a>
+  <a href="https://github.com/Marcelover777/token-optimizer/stargazers"><img src="https://img.shields.io/github/stars/Marcelover777/token-optimizer?style=flat&color=yellow" alt="Stars"></a>
+  <a href="https://github.com/Marcelover777/token-optimizer/commits/main"><img src="https://img.shields.io/github/last-commit/Marcelover777/token-optimizer?style=flat" alt="Last Commit"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Marcelover777/token-optimizer?style=flat" alt="License"></a>
 </p>
 
 <p align="center">
@@ -25,6 +25,9 @@
 ---
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes agent talk like caveman — cuts **~75% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
+
+> [!NOTE]
+> **Fork of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).** This repo keeps the full caveman product and adds a **model-aware token-cost optimizer** for **Claude Fable 5 _and_ Claude Opus 4.8**: safe doc/context compression, MCP metadata shrink, adaptive prompt injection, and a budget-guarded benchmark + USD pricing. The optimizer cuts *token counts*, so it works on any Claude model — and saves **~1.5× more money on Opus 4.8** than Fable 5, because Opus tokens cost more. **→ Read [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** for how it works and what it can do. Upstream attribution in [NOTICE](./NOTICE).
 
 ## Before / After
 
@@ -127,7 +130,7 @@ Install break? Open agent, say *"Read CLAUDE.md and INSTALL.md, install caveman 
 
 **Statusline badge** — Claude Code shows `[CAVEMAN] ⛏ 12.4k` (lifetime tokens saved). Updates every `/caveman-stats` run. Set `CAVEMAN_STATUSLINE_SAVINGS=0` to silence.
 
-Auto-activate every session: Claude Code, Codex, Gemini (built-in). Cursor / Windsurf / Cline / Copilot get always-on rule files via `--with-init`. Other agents trigger with `/caveman` per session. Full feature matrix in [INSTALL.md](./INSTALL.md#what-you-get).
+Auto-activate every session: Claude Code, Codex, Gemini (built-in). Cursor / Windsurf / Cline / Copilot get always-on rule files via `--with-init`. Other agents trigger with `/caveman` per session. Full feature matrix in [INSTALL.md](./INSTALL.md).
 
 ## Benchmarks
 
@@ -151,17 +154,26 @@ Real token counts from the Claude API. Average **65% output reduction** across 1
 
 Raw data and reproduction script: [`benchmarks/`](./benchmarks/). Three-arm eval harness (baseline / terse / skill) lives in [`evals/`](./evals/) — caveman compared against `Answer concisely.` not against verbose default, so the delta is honest.
 
-### Fable 5 optimizer
+### Fable 5 / Opus 4.8 optimizer
 
-Caveman now has a Fable 5-aware V1 path:
+A **model-aware token-cost optimizer** sits on top of caveman. It attacks four
+surfaces — model output, re-sent context/docs, MCP tool metadata, and
+measurement — and prices the result for the model you actually ran:
 
 - micro-inject by default for Claude Code SessionStart, with full skill fallback via config;
-- `/caveman-stats --json` reports input/output/cache tokens and cost estimates for `claude-fable-5`;
-- `/caveman-compress --local-only` runs without network/API; `--llm claude-fable-5` is opt-in;
-- secret scan blocks high-risk files before any LLM call;
-- `caveman-shrink` supports newline JSON and `Content-Length` MCP framing.
+- `/caveman-stats --json` reports input/output/cache tokens and USD cost for `claude-fable-5`, `claude-opus-4-8`, and any Claude model (longest-prefix pricing);
+- `/caveman-compress --local-only` runs without network/API; `--llm` is opt-in, with protected spans, secret-scan abort, per-section validation + one repair pass, and a `--max-llm-usd` spend cap;
+- `/caveman-bench --online --model claude-opus-4-8` re-benchmarks against Opus directly (budget-guarded, hard $15 cap);
+- `caveman-shrink` preserves `inputSchema`, never mutates `tools/call`, and supports newline JSON + `Content-Length` framing.
 
-LLM compression may send selected prose to Claude API. Fable 5 API traffic can have retention requirements; do not run LLM compression on sensitive documents. Local-only mode stays on machine.
+**Does it work on Opus 4.8 as well as Fable 5?** Yes — it cuts *token counts*,
+which is model-independent, so the ~70% output / ~25–55% doc savings transfer.
+And since Opus output is $75/M vs Fable's $50/M, the **same cut saves ~1.5× more
+real money on Opus 4.8**. The headline percentages were measured on Fable 5;
+re-run the bench above for a verified Opus number. Full detail, benchmarks, and
+safety guarantees: **[docs/OPTIMIZER.md](./docs/OPTIMIZER.md)**.
+
+LLM compression may send selected prose to the Claude API. API traffic can have retention requirements; do not run LLM compression on sensitive documents. Local-only mode stays on machine.
 
 **caveman-compress receipts** (real memory files):
 
@@ -245,7 +257,7 @@ Compose: cavekit drive build, caveman compress what agent *say*, cavemem compres
 
 Caveman save you token, save you money. Star cost zero. Fair trade. ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JuliusBrussee/caveman&type=Date)](https://star-history.com/#JuliusBrussee/caveman&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Marcelover777/token-optimizer&type=Date)](https://star-history.com/#Marcelover777/token-optimizer&Date)
 
 ## Also by Julius Brussee
 

@@ -9,6 +9,19 @@ const MODEL_PRICING = {
     cacheReadPerMTok: 1.00,
     source: 'anthropic-pricing-2026-06-10',
   },
+  // Opus 4.8 (and its 1M-context "[1m]" variant) resolve here explicitly so
+  // stats/bench/doctor are model-aware instead of leaning on the prefix matcher.
+  // The numbers are inherited from the Opus 4 family and are NOT a confirmed 4.8
+  // figure — update `source` and the values when official pricing publishes, or
+  // override per-machine via the MODEL_PRICING table / CAVEMAN_TARGET_MODEL.
+  // The longer key is matched before 'claude-opus-4' by pricingForModel().
+  'claude-opus-4-8': {
+    inputPerMTok: 15.00,
+    outputPerMTok: 75.00,
+    cacheWritePerMTok: 18.75,
+    cacheReadPerMTok: 1.50,
+    source: 'inherited-opus-4-family-unverified',
+  },
   'claude-opus-4': {
     inputPerMTok: 15.00,
     outputPerMTok: 75.00,

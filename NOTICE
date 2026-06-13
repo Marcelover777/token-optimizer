@@ -1,0 +1,30 @@
+token-optimizer
+===============
+
+This repository is a fork and derivative work of **caveman** by Julius Brussee:
+
+    Upstream: https://github.com/JuliusBrussee/caveman
+    License:  MIT (see LICENSE) — Copyright (c) 2026 Julius Brussee
+
+The upstream MIT license is preserved in LICENSE and applies to all upstream
+code carried over into this repository. All original copyright notices are kept.
+
+What this fork adds on top of upstream caveman
+----------------------------------------------
+
+A model-aware token-cost optimizer layer (the "Fable 5 / Opus 4.8 optimizer"),
+living mostly under:
+
+    src/core/         deterministic compression, protected spans, secret scan,
+                      markdown sectioning, token counting, model pricing, cache
+    src/commands/     caveman-compress, caveman-bench, caveman-doctor, caveman-config
+    src/hooks/        adaptive micro-injection policy + Fable/Opus-aware stats
+    src/mcp-servers/  caveman-shrink framing/transform hardening
+    evals/            budgeted online + offline eval harness, fixtures, reports
+    docs/OPTIMIZER.md the optimizer's full design + capabilities doc
+
+See docs/OPTIMIZER.md for what the optimizer does and how it works, and
+docs/fable5.md for the Fable 5 / Opus 4.8 model notes.
+
+Trademarks and product names referenced (Claude, Fable, Opus, Anthropic, and the
+agent integrations listed in INSTALL.md) belong to their respective owners.
