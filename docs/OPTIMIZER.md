@@ -421,3 +421,21 @@ docs/fable5.md    Fable 5 / Opus 4.8 model notes
 
 Maintainer-level detail (hook architecture, file ownership, CI sync) is in the
 root [CLAUDE.md](../CLAUDE.md).
+
+## Roadmap / measured-but-not-yet-shipped levers
+
+Two further savings sources are documented here but **not shipped** because they
+need verification against the live Claude Code host before the numbers can be
+claimed honestly:
+
+- **Tool Search `defer_loading`** (Anthropic) omits long-tail MCP tool definitions
+  from the prompt prefix (85%+ definition-token cut) and pulls them in on demand.
+  Composes with the existing description shrink. Pending: confirm the host honors
+  `defer_loading` for third-party MCP servers.
+- **Context Editing (`clear_tool_uses_20250919`)** auto-clears stale tool results
+  server-side on long sessions. Pending: surface `cleared_input_tokens` as a
+  measured metric and ship a recommended config.
+- **Cache-prefix pricing** — the injected ruleset is already byte-stable across
+  turns; once we confirm Claude Code places hook context at a cache breakpoint,
+  re-injection should be priced at `cacheReadPerMTok` (Opus 4.8 $0.50) not
+  `inputPerMTok` ($5) — a 10x correction on the dominant overhead term.

@@ -1,35 +1,76 @@
 #!/usr/bin/env python3
 """Offline-friendly fidelity judge helpers.
 
-Online LLM judging can wrap this rubric, but this file intentionally works
-without API access so CI can validate report plumbing.
+The score measures whether the TECHNICAL terms of the reference survive in the
+candidate — code spans, identifiers, API/function names, numbers, URLs, paths,
+SCREAMING_CASE and camelCase. Brevity is NOT penalized: dropping filler words is
+the whole point of the optimizer, so only technical-substance loss counts.
+
+Note: in the eval snapshot the arms are INDEPENDENT generations of the same
+prompt (not a compression of the baseline), so this is an advisory cross-arm
+*agreement* signal, not a hard compression-fidelity proof. The hard fidelity
+guarantee for the doc-compression surface is the byte-level validator in
+src/core/validate.js. Online LLM judging can wrap this rubric for a stronger pass.
 """
 
 import json
+import re
 import sys
 
 RUBRIC = {
-    "score": "0-5",
-    "5": "all technical claims preserved, no harmful omissions, concise",
-    "4": "minor wording omissions, still actionable",
-    "3": "useful but loses one important caveat or step",
-    "2": "ambiguous or incomplete",
-    "1": "technically wrong in important way",
+    "score": "0-5 by fraction of technical terms preserved (brevity not penalized)",
+    "5": "all technical terms preserved",
+    "4": ">=90% preserved — still actionable",
+    "3": ">=75% preserved — loses a minor technical detail",
+    "2": ">=50% preserved",
+    "1": "<50% preserved",
     "0": "unusable",
 }
 
+# Code/identifiers/calls/dotted, URLs, paths, SCREAMING_CASE, camelCase, numbers.
+_TECH = re.compile(
+    r"`[^`]+`"
+    r"|https?://\S+"
+    r"|\b\w+(?:[/\\]\w+)+\b"
+    r"|\b[A-Za-z_]\w*\([^)]*\)"
+    r"|\b\w+\.\w[\w.]*\b"
+    r"|\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b"
+    r"|\b\w*[a-z]\w*[A-Z]\w*\b"
+    r"|\b\d[\w.%-]*\b"
+)
+
+
+def technical_terms(text: str) -> set:
+    terms = set()
+    for m in _TECH.finditer(text or ""):
+        t = m.group(0).strip("`").strip(".,:;()")
+        if len(t) >= 2:
+            terms.add(t)
+    return terms
+
 
 def heuristic_score(reference: str, candidate: str) -> dict:
-    ref_terms = {t.strip(".,:;`()").lower() for t in reference.split() if len(t) > 4}
-    cand = candidate.lower()
-    missing = sorted(t for t in ref_terms if t and t not in cand)[:12]
-    score = 5 if not missing else 4 if len(missing) <= 2 else 3 if len(missing) <= 5 else 2
+    ref_terms = technical_terms(reference)
+    cand = candidate or ""
+    missing = sorted(t for t in ref_terms if t not in cand)
+    n = len(ref_terms)
+    recall = 1.0 if n == 0 else (n - len(missing)) / n
+    score = (
+        5 if recall >= 0.98
+        else 4 if recall >= 0.90
+        else 3 if recall >= 0.75
+        else 2 if recall >= 0.50
+        else 1
+    )
     return {
         "score": score,
-        "missing_claims": missing,
+        "recall": round(recall, 3),
+        "technical_terms": n,
+        "missing_claims": missing[:12],
         "wrong_claims": [],
         "ambiguity": 0 if score >= 4 else 1,
-        "verdict": "pass" if score >= 4 else "review",
+        "verdict": "pass" if score >= 3 else "review",
+        "method": "technical-term recall (brevity not penalized)",
     }
 
 

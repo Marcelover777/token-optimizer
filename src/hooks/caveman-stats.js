@@ -70,7 +70,17 @@ try {
 }
 
 // Mean per-task output savings from committed benchmark snapshots.
-const COMPRESSION = { full: 0.65 };
+// Mean per-mode output savings, loaded from a committed benchmark so the
+// headline number is recalibratable and only covers MEASURED modes.
+function loadCompressionRatios() {
+  try {
+    const p = path.join(__dirname, '..', '..', 'benchmarks', 'results', 'output-savings.json');
+    const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+    if (j && j.modes && typeof j.modes === 'object') return j.modes;
+  } catch (_) {}
+  return { full: 0.65 };
+}
+const COMPRESSION = loadCompressionRatios();
 
 function priceForModel(model) {
   return pricingCore.outputPriceForModel(model);
