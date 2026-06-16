@@ -236,6 +236,9 @@ function splitBoundaryWhitespace(text) {
 }
 
 async function compressSection(section, opts, config, cache) {
+  // A pure fenced-code run is fully protected anyway; return it verbatim and
+  // skip the savings gate / LLM call entirely.
+  if (section.kind === 'code') return { text: section.text, cacheHit: false, strategy: 'verbatim-code', llmAttempts: 0 };
   const sourceHash = sha256(section.text);
   const mode = opts.mode || 'full';
   const key = cacheKey({
