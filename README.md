@@ -2,10 +2,11 @@
   <img src="https://em-content.zobj.net/source/apple/391/rock_1faa8.png" width="120" />
 </p>
 
-<h1 align="center">caveman</h1>
+<h1 align="center">Token Optimizer</h1>
 
 <p align="center">
-  <strong>why use many token when few do trick</strong>
+  <strong>why use many token when few do trick</strong><br/>
+  <sub>cut ~77% of Claude's output tokens — full technical accuracy · caveman-powered · built for Opus 4.8</sub>
 </p>
 
 <p align="center">
@@ -16,15 +17,20 @@
 
 <p align="center">
   <a href="#before--after">Before/After</a> •
+  <a href="#60-second-quickstart">Quickstart</a> •
   <a href="#install">Install</a> •
   <a href="#what-you-get">What You Get</a> •
   <a href="#benchmarks">Benchmarks</a> •
-  <a href="./INSTALL.md">Full install guide</a>
+  <a href="./docs/OPTIMIZER.md">How it works</a>
 </p>
 
 ---
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes agent talk like caveman — cuts **~75% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
+<p align="center">
+  <img src="docs/assets/hero.png" width="820" alt="Token Optimizer — cut ~77% of Claude's output tokens with full technical accuracy"/>
+</p>
+
+A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes the agent talk like a caveman — cuts **~77% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
 
 > [!NOTE]
 > **Fork of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).** This repo keeps the full caveman product and adds a **model-aware token-cost optimizer** built for **Claude Opus 4.8** (Fable 5 was retired by Anthropic — the API now says *"not available, please use Opus 4.8"*). On a **real, budgeted Opus 4.8 benchmark** it cut **76.7% of output tokens** (mean; p50 79.3%) with **zero fidelity failures**, plus **15–51% of re-sent doc/context** — surfaces caveman doesn't touch at all. It adds safe doc compression, MCP metadata shrink, adaptive injection, and a budget-guarded USD benchmark. **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** explains how it works, why it doesn't lose quality, and how it compares to caveman. Upstream attribution in [NOTICE](./NOTICE).
@@ -94,6 +100,40 @@ npm install -g @juliusbrussee/caveman-code
 
 </td></tr>
 </table>
+
+## 60-second Quickstart
+
+Three steps. One rock. That it.
+
+**1. Install** — one line (~30s, needs Node ≥18):
+
+```bash
+# macOS / Linux / WSL / Git Bash
+curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
+# Windows PowerShell 5.1+
+irm https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.ps1 | iex
+```
+
+**2. Turn it on** — open Claude Code, type:
+
+```
+/caveman
+```
+
+Every reply now terse, full accuracy. Stop with `normal mode`. Grunt levels: `/caveman lite | full | ultra | wenyan`.
+
+**3. See the money** — real tokens + USD for Opus 4.8:
+
+```
+/caveman-stats --json
+```
+
+Statusline shows `[CAVEMAN] ⛏ 12.4k` — lifetime tokens saved.
+
+> **Squeeze the other surfaces** (optimizer layer):
+> - `/caveman-compress CLAUDE.md --check` — preview safe doc compression (no write, no network)
+> - `/caveman-bench --offline --report` — token + USD report
+> - How it all works → **[docs/OPTIMIZER.md](./docs/OPTIMIZER.md)**
 
 ## Install
 
