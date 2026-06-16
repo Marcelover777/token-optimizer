@@ -161,10 +161,10 @@ Install break? Open agent, say *"Read CLAUDE.md and INSTALL.md, install caveman 
 | `/caveman [lite\|full\|ultra\|wenyan]` | Compress every reply. Levels stick until session end. |
 | `/caveman-commit` | Conventional Commit messages, ≤50 char subject. Why over what. |
 | `/caveman-review` | One-line PR comments: `L42: 🔴 bug: user null. Add guard.` |
-| `/caveman-stats` | Real session token usage + lifetime savings + Fable 5-aware USD. JSON via `--json`, tweetable line via `--share`. |
-| `/caveman-compress <file>` | Local-first safe memory compression. Code/URLs/paths byte-preserved. LLM compression opt-in via `--llm`. |
+| `/caveman-stats` | Real session token usage + lifetime savings + model-aware USD (Opus 4.8 default). JSON via `--json`, tweetable line via `--share`. |
+| `/caveman-compress <file>` | Local-first safe memory compression. Code/URLs/paths byte-preserved. LLM compression opt-in via `--llm` (default `claude-sonnet-4-6`). |
 | `/caveman-doctor` | Checks hooks, config, statusline, MCP shrink, pricing, secret scanner, token-count readiness. |
-| `/caveman-bench` | Offline eval/bench report; Fable 5 online path when API key exists. |
+| `/caveman-bench` | Offline eval/bench report; budgeted Opus 4.8 online path when API key exists. |
 | `caveman-shrink` | MCP middleware. Wraps any MCP server, compresses list descriptions with Content-Length support. [npm](https://www.npmjs.com/package/caveman-shrink). |
 | `cavecrew-*` | Compact subagents (investigator/builder/reviewer). File/line evidence stays, main context lasts longer. |
 

@@ -36,7 +36,8 @@ Useful flags:
 --out <file>
 --strict
 --local-only
---llm claude-fable-5
+--llm claude-sonnet-4-6
+--max-llm-usd <n>
 --restore
 --json
 --dry-run

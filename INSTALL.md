@@ -117,16 +117,16 @@ Useful flags:
 | `--force` | Re-run even if already installed. |
 | `--uninstall` | Remove everything. See below. |
 
-## Fable 5 optimizer commands
+## Token-optimizer commands
 
-These commands ship with the repo/plugin command stubs:
+These commands ship with the repo/plugin command stubs (model-aware, Opus 4.8 by default):
 
 | Command | What |
 |---|---|
-| `/caveman-stats --json` | Session usage as schema v2 JSON: input/output/cache tokens, Fable 5 pricing, estimated savings. |
+| `/caveman-stats --json` | Session usage as schema v2 JSON: input/output/cache tokens, model-aware USD pricing, estimated savings. |
 | `/caveman-compress CLAUDE.md --check --local-only` | Safe dry check. No writes, no API. |
 | `/caveman-compress CLAUDE.source.md --out CLAUDE.md --strict` | Source/compressed split for memory files. |
-| `/caveman-compress CLAUDE.md --llm claude-fable-5` | Opt-in LLM compression after local deterministic pass and secret scan. |
+| `/caveman-compress CLAUDE.md --llm claude-sonnet-4-6 --max-llm-usd 1` | Opt-in LLM compression after local deterministic pass and secret scan, with a hard spend cap. |
 | `/caveman-compress CLAUDE.md --restore` | Restore latest `.caveman/backups/**` or legacy `CLAUDE.original.md`. |
 | `/caveman-doctor --json` | Machine-readable readiness check. |
 | `/caveman-bench --offline --report` | Offline eval report under `evals/reports/`. |

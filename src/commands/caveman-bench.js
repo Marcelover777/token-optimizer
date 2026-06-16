@@ -71,13 +71,13 @@ function offlineReport() {
     schema_version: 2,
     mode: 'offline',
     snapshots_present: !!snapshots,
-    arms: ['baseline', 'terse', 'caveman-current-full', 'fable-micro-full', 'fable-adaptive-full', 'fable-lite', 'fable-ultra', 'local-compress-only', 'hybrid-compress'],
+    arms: ['baseline', 'terse', 'caveman-current-full', 'optimizer-micro-full', 'optimizer-adaptive-full', 'optimizer-lite', 'optimizer-ultra', 'local-compress-only', 'hybrid-compress'],
     prompts: promptTokens,
     injection_overhead: {
       micro_full_line_tokens: estimateTokensFromText(microFull),
       v1_micro_full_line_tokens: estimateTokensFromText(V1_REFERENCE.micro_full_line),
     },
-    recommendation: 'Use fable-micro-full as default until online evals prove hybrid/adaptive quality >=4.',
+    recommendation: 'Use optimizer-micro-full as default until online evals prove hybrid/adaptive quality >=4.',
   };
 }
 

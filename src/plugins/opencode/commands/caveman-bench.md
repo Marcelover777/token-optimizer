@@ -1,4 +1,4 @@
-Run Caveman Fable 5 bench/report.
+Run Caveman token-optimizer bench/report (Opus 4.8 by default).
 
 Command:
 

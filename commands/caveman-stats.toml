@@ -1,2 +1,2 @@
-description = "Show Caveman token usage, savings, and Fable 5 cost estimates"
+description = "Show Caveman token usage, savings, and model-aware USD cost estimates"
 prompt = "Run `node src/hooks/caveman-stats.js {{args}}`. If inside Claude Code and a transcript path is available, pass `--session-file <transcript_path>`. Preserve `--json`, `--share`, `--all`, and `--since` flags."

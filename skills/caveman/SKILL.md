@@ -75,6 +75,6 @@ Example — destructive op:
 
 Code/commits/PRs: write normal. "stop caveman" or "normal mode": revert. Level persist until changed or session end.
 
-## Fable 5 note
+## Optimizer note
 
-Fable 5 optimizer may inject compact `MICRO.md` rules instead of this full skill during Claude Code SessionStart. Same behavior target, lower input overhead. Caveman reduces visible output and repeated context; it does not reduce hidden adaptive thinking tokens directly. Use `/caveman-stats --json` for Fable-aware estimates.
+The token-cost optimizer may inject compact `MICRO.md` rules instead of this full skill during Claude Code SessionStart. Same behavior target, lower input overhead. Caveman reduces visible output and repeated context; it does not reduce hidden adaptive thinking tokens directly. Use `/caveman-stats --json` for model-aware USD estimates (Opus 4.8 by default, any Claude model via pricing table).

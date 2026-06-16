@@ -62,9 +62,9 @@ uv run --with tiktoken python evals/measure.py
 
 Append a line to `prompts/en.txt`, then refresh the snapshot.
 
-## Budgeted online bench (Fable optimizer)
+## Budgeted online bench (token-cost optimizer)
 
-`node src/commands/caveman-bench.js --online [--max-spend 1] [--model claude-fable-5] [--report]`
+`node src/commands/caveman-bench.js --online [--max-spend 1] [--model claude-opus-4-8] [--report]`
 hits the Anthropic API directly (needs `ANTHROPIC_API_KEY`) and measures
 two surfaces with one shared spend guard:
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // caveman-stats - read Claude Code session logs, print token usage, and
-// estimate savings/costs with Fable 5-aware pricing.
+// estimate savings/costs with model-aware pricing (Opus 4.8 default; prices by
+// the model recorded in the session log, any Claude via the central table).
 
 const fs = require('fs');
 const path = require('path');

@@ -120,7 +120,7 @@ node src/commands/caveman-compress.js CLAUDE.md --check --local-only
 # Compress a source file into the live one, strict invariants, opt-in LLM,
 # with a hard spend cap:
 node src/commands/caveman-compress.js CLAUDE.source.md --out CLAUDE.md \
-  --strict --llm claude-fable-5 --max-llm-usd 1
+  --strict --llm claude-sonnet-4-6 --max-llm-usd 1
 
 # JSON report (per-section strategy, fallbacks, fidelity metrics):
 node src/commands/caveman-compress.js project-notes.md --check --json

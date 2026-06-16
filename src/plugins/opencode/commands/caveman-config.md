@@ -6,4 +6,4 @@ Command:
 node src/commands/caveman-config.js {{args}}
 ```
 
-Examples: `show`, `set targetModel claude-fable-5`, `set injection.strategy adaptive`.
+Examples: `show`, `set targetModel claude-opus-4-8`, `set injection.strategy adaptive`.

@@ -1,2 +1,2 @@
 description = "Show or update Caveman config"
-prompt = "Run `node src/commands/caveman-config.js {{args}}`. Supported examples: `show`, `set targetModel claude-fable-5`, `set injection.strategy adaptive`, `set compression.defaultStrategy hybrid`."
+prompt = "Run `node src/commands/caveman-config.js {{args}}`. Supported examples: `show`, `set targetModel claude-opus-4-8`, `set injection.strategy adaptive`, `set compression.defaultStrategy hybrid`."
