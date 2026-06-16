@@ -59,8 +59,8 @@ function validateCompression(original, compressed, opts = {}) {
     collect(o, /\b[A-Za-z]:\\[^\s`"'<>|]+|(?:^|[\s(])(?:\.{1,2}\/|\/)[^\s`"'<>),]+/g, m => m[0].trim()),
     collect(c, /\b[A-Za-z]:\\[^\s`"'<>|]+|(?:^|[\s(])(?:\.{1,2}\/|\/)[^\s`"'<>),]+/g, m => m[0].trim()));
   pushDiff(errors, 'env_changed', 'Environment variables',
-    collect(o, /\$[A-Za-z_][A-Za-z0-9_]*|\b[A-Z][A-Z0-9_]{2,}\b/g),
-    collect(c, /\$[A-Za-z_][A-Za-z0-9_]*|\b[A-Z][A-Z0-9_]{2,}\b/g));
+    collect(o, /\$[A-Za-z_][A-Za-z0-9_]*|\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g),
+    collect(c, /\$[A-Za-z_][A-Za-z0-9_]*|\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g));
   pushDiff(errors, 'numbers_changed', 'Numbers, versions, or dates',
     collect(o, /\b(?:v?\d+\.\d+(?:\.\d+)?|\d{4}-\d{2}-\d{2}|\d+(?:\.\d+)?\s?(?:ms|s|m|h|KB|MB|GB|TB|%|USD|tokens?))\b/gi),
     collect(c, /\b(?:v?\d+\.\d+(?:\.\d+)?|\d{4}-\d{2}-\d{2}|\d+(?:\.\d+)?\s?(?:ms|s|m|h|KB|MB|GB|TB|%|USD|tokens?))\b/gi));

@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { readFlag, appendFlag, readHistory, safeWriteFlag } = require('./caveman-config');
+const { readFlag, appendFlag, readHistory, safeWriteFlag, getTargetModel } = require('./caveman-config');
 
 let pricingCore;
 try {
@@ -87,7 +87,7 @@ function findRecentSession(claudeDir) {
   catch { return null; }
 
   let best = null;
-  const stack = entries.map(e => path.join(projectsDir, e.name));
+  const slug = process.cwd().replace(/[\/:]/g, '-').replace(/^-+/, ''); const scoped = path.join(projectsDir, slug); let roots = []; try { if (fs.statSync(scoped).isDirectory()) roots.push(scoped); } catch {} if (!roots.length) roots = entries.map(e => path.join(projectsDir, e.name)); const stack = [...roots];
   while (stack.length) {
     const p = stack.pop();
     let st;
@@ -174,7 +174,7 @@ function summarizeCompressed(pairs) {
 
 function savingsModel({ inputTokens = 0, outputTokens = 0, cacheReadTokens = 0, cacheCreationTokens = 0, mode, model, injectionOverhead = 0 }) {
   const ratio = COMPRESSION[mode] != null ? COMPRESSION[mode] : null;
-  const pricing = pricingCore.pricingForModel(model);
+  let pricingSource = 'session-model'; let resolvedModel = model; if (!resolvedModel) { resolvedModel = getTargetModel(); pricingSource = 'config-default'; } const pricing = pricingCore.pricingForModel(resolvedModel);
   const tokens = {
     input: inputTokens,
     output: outputTokens,
@@ -183,7 +183,7 @@ function savingsModel({ inputTokens = 0, outputTokens = 0, cacheReadTokens = 0, 
     injection_overhead: injectionOverhead,
   };
   const estimate = pricingCore.estimateBaseline({ tokens, modeRatio: ratio, pricing, injectionOverhead });
-  return { ratio, pricing, tokens, ...estimate };
+  return { ratio, pricing, pricing_source: pricingSource, priced_model: resolvedModel || null, tokens, ...estimate };
 }
 
 function deriveSavings({ outputTokens, inputTokens = 0, cacheReadTokens = 0, cacheCreationTokens = 0, mode, model }) {

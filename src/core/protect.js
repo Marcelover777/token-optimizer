@@ -29,7 +29,7 @@ function protectSegments(text, options = {}) {
   collectMatches(source, 'raw_url', /\bhttps?:\/\/[^\s<>)]+/gi, matches);
   collectMatches(source, 'windows_path', /\b[A-Za-z]:\\[^\s`"'<>|]+/g, matches);
   collectMatches(source, 'unix_path', /(?:\.{1,2}\/|\/)[^\s`"'<>),]+/g, matches);
-  collectMatches(source, 'env_var', /\b[A-Z][A-Z0-9_]{2,}\b|\$[A-Za-z_][A-Za-z0-9_]*/g, matches);
+  collectMatches(source, 'env_var', /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b|\$[A-Za-z_][A-Za-z0-9_]*/g, matches);
   collectMatches(source, 'function_call', /\b[A-Za-z_][A-Za-z0-9_]*\([^)\n]*\)/g, matches);
   collectMatches(source, 'dotted_identifier', /\b[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){1,}\b/g, matches);
   collectMatches(source, 'version', /\bv?\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.-]+)?\b/g, matches);
