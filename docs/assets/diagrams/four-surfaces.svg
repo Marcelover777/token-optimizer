@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 600" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <rect width="1120" height="600" fill="#0d1117"/>
+  <text x="40" y="52" fill="#e6edf3" font-size="30" font-weight="800">As 4 frentes de custo de uma sessão</text>
+  <text x="40" y="82" fill="#8b949e" font-size="16">Cada frente corta tokens com um mecanismo diferente. Frentes 1–3 reduzem contagem (igual em todo modelo); só a 4 é ciente de modelo.</text>
+
+  <!-- agent core -->
+  <rect x="470" y="270" width="180" height="70" rx="14" fill="#11202e" stroke="#f0883e" stroke-width="2"/>
+  <text x="560" y="300" fill="#fff" font-size="17" font-weight="700" text-anchor="middle">Claude Code</text>
+  <text x="560" y="322" fill="#9da7b3" font-size="12.5" text-anchor="middle">agente / sessão</text>
+
+  <!-- surface 1: output (top) -->
+  <rect x="430" y="110" width="260" height="92" rx="12" fill="#11201a" stroke="#2c5d40"/>
+  <text x="448" y="138" fill="#7ee2a8" font-size="14" font-weight="700">1 · OUTPUT do modelo</text>
+  <text x="448" y="160" fill="#c9d3de" font-size="12.5">o que o agente escreve de volta</text>
+  <text x="448" y="182" fill="#8b949e" font-size="12">→ regra "answer-first" no SessionStart</text>
+  <line x1="560" y1="202" x2="560" y2="270" stroke="#2c5d40" stroke-width="2"/>
+
+  <!-- surface 2: context (left) -->
+  <rect x="40" y="250" width="280" height="110" rx="12" fill="#1d1622" stroke="#5d3a6b"/>
+  <text x="58" y="278" fill="#d2a8e8" font-size="14" font-weight="700">2 · CONTEXTO re-enviado</text>
+  <text x="58" y="300" fill="#c9d3de" font-size="12.5">CLAUDE.md / memória / docs</text>
+  <text x="58" y="318" fill="#c9d3de" font-size="12.5">reenviados TODO turn</text>
+  <text x="58" y="340" fill="#8b949e" font-size="12">→ caveman-compress (1x, validado)</text>
+  <line x1="320" y1="305" x2="470" y2="305" stroke="#5d3a6b" stroke-width="2"/>
+
+  <!-- surface 3: MCP (right) -->
+  <rect x="800" y="250" width="280" height="110" rx="12" fill="#16202e" stroke="#2f5d7a"/>
+  <text x="818" y="278" fill="#79c0ff" font-size="14" font-weight="700">3 · METADATA MCP</text>
+  <text x="818" y="300" fill="#c9d3de" font-size="12.5">descrições de tools (*/list)</text>
+  <text x="818" y="318" fill="#c9d3de" font-size="12.5">+ resultados de tools/call (opt-in)</text>
+  <text x="818" y="340" fill="#8b949e" font-size="12">→ caveman-shrink (inputSchema safe)</text>
+  <line x1="650" y1="305" x2="800" y2="305" stroke="#2f5d7a" stroke-width="2"/>
+
+  <!-- surface 4: measurement (bottom) -->
+  <rect x="430" y="410" width="260" height="110" rx="12" fill="#221a14" stroke="#7a5a2f"/>
+  <text x="448" y="438" fill="#f0b860" font-size="14" font-weight="700">4 · MEDIÇÃO (ciente de modelo)</text>
+  <text x="448" y="460" fill="#c9d3de" font-size="12.5">tokens reais → USD (Opus 4.8 $5/$25)</text>
+  <text x="448" y="482" fill="#8b949e" font-size="12">→ caveman-stats / -bench / -doctor</text>
+  <text x="448" y="503" fill="#8b949e" font-size="12">benchmark com teto de gasto ($15)</text>
+  <line x1="560" y1="340" x2="560" y2="410" stroke="#7a5a2f" stroke-width="2"/>
+
+  <text x="40" y="575" fill="#6e7681" font-size="12.5">Caveman (upstream) só ataca a frente 1. O Token Optimizer ataca as quatro — por isso encolhe a conta inteira, não só a resposta.</text>
+</svg>

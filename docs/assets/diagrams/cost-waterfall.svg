@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <rect width="960" height="560" fill="#0d1117"/>
+  <text x="40" y="50" fill="#e6edf3" font-size="29" font-weight="800">Custo por turn — as frentes empilham</text>
+  <text x="40" y="80" fill="#8b949e" font-size="15">1 turn: 4.000 tokens de docs no contexto + 1.000 de output. Preço verificado Opus 4.8: $5/M in · $25/M out.</text>
+
+  <!-- axis -->
+  <line x1="120" y1="430" x2="900" y2="430" stroke="#2d333b" stroke-width="1.5"/>
+
+  <!-- bar 1: no compression -->
+  <rect x="170" y="150" width="150" height="280" rx="6" fill="#88313a"/>
+  <text x="245" y="135" fill="#ff9aa3" font-size="22" font-weight="800" text-anchor="middle">$0,0450</text>
+  <text x="245" y="455" fill="#c9d3de" font-size="14" font-weight="600" text-anchor="middle">Sem compressão</text>
+  <text x="245" y="475" fill="#8b949e" font-size="12" text-anchor="middle">4.000 ctx · 1.000 out</text>
+
+  <!-- bar 2: caveman -->
+  <rect x="405" y="242" width="150" height="188" rx="6" fill="#9a6a2f"/>
+  <text x="480" y="227" fill="#f0b860" font-size="22" font-weight="800" text-anchor="middle">$0,0302</text>
+  <text x="480" y="455" fill="#c9d3de" font-size="14" font-weight="600" text-anchor="middle">Caveman</text>
+  <text x="480" y="475" fill="#8b949e" font-size="12" text-anchor="middle">só output −59,4%</text>
+
+  <!-- bar 3: optimizer -->
+  <rect x="640" y="327" width="150" height="103" rx="6" fill="#1f7a4d"/>
+  <text x="715" y="312" fill="#3fb950" font-size="22" font-weight="800" text-anchor="middle">$0,0166</text>
+  <text x="715" y="455" fill="#c9d3de" font-size="14" font-weight="600" text-anchor="middle">Token Optimizer</text>
+  <text x="715" y="475" fill="#8b949e" font-size="12" text-anchor="middle">out −76,7% + docs −46%</text>
+
+  <!-- deltas -->
+  <text x="715" y="360" fill="#d6ffe7" font-size="13" font-weight="700" text-anchor="middle">~45% &lt; caveman</text>
+
+  <text x="40" y="525" fill="#6e7681" font-size="12.5">As % de economia independem do preço (compõem em qualquer modelo). A economia de contexto recorre a cada turn — os docs foram encolhidos uma vez.</text>
+</svg>

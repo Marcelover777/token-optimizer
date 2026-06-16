@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 480" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <rect width="1040" height="480" fill="#0d1117"/>
+  <text x="40" y="50" fill="#e6edf3" font-size="29" font-weight="800">Níveis de intensidade</text>
+  <text x="40" y="80" fill="#8b949e" font-size="15">Mais compressão à direita; precisão técnica constante (100%) em todos. Troca por comando: <tspan fill="#79c0ff">/caveman lite|full|ultra|wenyan</tspan></text>
+
+  <!-- axis -->
+  <line x1="80" y1="380" x2="980" y2="380" stroke="#2d333b" stroke-width="1.5"/>
+  <text x="80" y="410" fill="#8b949e" font-size="13">menos compressão</text>
+  <text x="980" y="410" fill="#8b949e" font-size="13" text-anchor="end">mais compressão</text>
+  <line x1="80" y1="120" x2="80" y2="380" stroke="#2d333b" stroke-width="1.5"/>
+  <text x="60" y="120" fill="#8b949e" font-size="12" transform="rotate(-90 60 120)" text-anchor="end">precisão</text>
+
+  <!-- nodes -->
+  <g>
+    <circle cx="200" cy="300" r="13" fill="#58a6ff"/>
+    <text x="200" y="270" fill="#e6edf3" font-size="16" font-weight="700" text-anchor="middle">lite</text>
+    <text x="200" y="338" fill="#8b949e" font-size="12" text-anchor="middle">tira filler,</text>
+    <text x="200" y="354" fill="#8b949e" font-size="12" text-anchor="middle">mantém gramática</text>
+  </g>
+  <g>
+    <circle cx="420" cy="250" r="14" fill="#f0883e"/>
+    <text x="420" y="220" fill="#e6edf3" font-size="16" font-weight="800" text-anchor="middle">full ★</text>
+    <text x="420" y="288" fill="#8b949e" font-size="12" text-anchor="middle">padrão · fragmentos,</text>
+    <text x="420" y="304" fill="#8b949e" font-size="12" text-anchor="middle">sem artigos</text>
+  </g>
+  <g>
+    <circle cx="640" cy="210" r="13" fill="#3fb950"/>
+    <text x="640" y="180" fill="#e6edf3" font-size="16" font-weight="700" text-anchor="middle">ultra</text>
+    <text x="640" y="248" fill="#8b949e" font-size="12" text-anchor="middle">telegráfico,</text>
+    <text x="640" y="264" fill="#8b949e" font-size="12" text-anchor="middle">setas X→Y</text>
+  </g>
+  <g>
+    <circle cx="860" cy="165" r="13" fill="#d2a8e8"/>
+    <text x="860" y="135" fill="#e6edf3" font-size="16" font-weight="700" text-anchor="middle">wenyan</text>
+    <text x="860" y="203" fill="#8b949e" font-size="12" text-anchor="middle">chinês clássico,</text>
+    <text x="860" y="219" fill="#8b949e" font-size="12" text-anchor="middle">~80–90% menor</text>
+  </g>
+
+  <path d="M200,300 Q310,275 420,250 T640,210 T860,165" fill="none" stroke="#30363d" stroke-width="2" stroke-dasharray="5 5"/>
+
+  <text x="40" y="455" fill="#6e7681" font-size="12.5">Auto-clareza: cai pra prosa normal em avisos de segurança, ações destrutivas e ambiguidade — e retoma depois.</text>
+</svg>

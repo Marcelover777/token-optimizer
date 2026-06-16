@@ -203,11 +203,21 @@ A **model-aware token-cost optimizer** sits on top of caveman. It attacks four
 surfaces — model output, re-sent context/docs, MCP tool metadata, and
 measurement — and prices the result for the model you actually ran:
 
+<p align="center">
+  <img src="docs/assets/diagrams/four-surfaces.png" width="780" alt="The four token-cost surfaces: output, re-sent context, MCP metadata, measurement"/>
+</p>
+
 - micro-inject by default for Claude Code SessionStart, with full skill fallback via config;
 - `/caveman-stats --json` reports input/output/cache tokens and USD cost for `claude-opus-4-8` (default), `claude-sonnet-4-6`, `claude-haiku-4-5`, and any Claude model (longest-prefix pricing);
 - `/caveman-compress --local-only` runs with no network; `--llm` is opt-in (default backend `claude-sonnet-4-6`), with protected spans, secret-scan abort, per-section validation + one repair pass + safe fallback, and a `--max-llm-usd` spend cap;
 - `/caveman-bench --online --model claude-opus-4-8` re-benchmarks against Opus directly (budget-guarded, hard $15 cap);
 - `caveman-shrink` preserves `inputSchema`, never mutates `tools/call`, and supports newline JSON + `Content-Length` framing.
+
+**Safe by construction** — every doc rewrite runs through a validation gate; break an invariant and it repairs once, else falls back to the safe local result. Code, URLs, paths, numbers, and identifiers stay byte-identical.
+
+<p align="center">
+  <img src="docs/assets/diagrams/compression-pipeline.png" width="860" alt="Compression pipeline: split prose/code, protect spans, compress, validate, repair, or fall back"/>
+</p>
 
 **Real Opus 4.8 results** (budgeted run, ~$0.29 at verified $5/$25 pricing, [raw JSON](./evals/reports/claude-opus-4-8-2026-06-13-online.json)):
 
