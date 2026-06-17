@@ -39,5 +39,5 @@
   <text x="448" y="503" fill="#8b949e" font-size="12">benchmark com teto de gasto ($15)</text>
   <line x1="560" y1="340" x2="560" y2="410" stroke="#7a5a2f" stroke-width="2"/>
 
-  <text x="40" y="575" fill="#6e7681" font-size="12.5">Caveman (upstream) só ataca a frente 1. O Token Optimizer ataca as quatro — por isso encolhe a conta inteira, não só a resposta.</text>
+  <text x="40" y="575" fill="#6e7681" font-size="12.5">Caveman (upstream) só ataca a frente 1. Flint ataca as quatro — por isso encolhe a conta inteira, não só a resposta.</text>
 </svg>

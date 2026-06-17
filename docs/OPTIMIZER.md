@@ -1,4 +1,4 @@
-# Token-cost optimizer — how it works & what it can do
+# Flint — the token-cost optimizer (how it works & what it can do)
 
 > Brain still big. Mouth small. Bill smaller.
 
@@ -32,7 +32,7 @@ This doc is the engineering view.
   and **~15–51% of re-sent doc context**, with **zero fidelity failures**.
 - That output cut is **vs no-compression Opus**. Against a plain caveman-style
   terse line — same prompts, same run — the optimizer still wins **76.7% vs
-  59.4%**. See [Token Optimizer vs Caveman](#token-optimizer-vs-caveman).
+  59.4%**. See [Flint vs Caveman](#flint-vs-caveman).
 - Opus 4.8 output is **$25/M — half the retired Fable 5's $50/M** (verified
   2026-06-16). Moving off Fable already cut your bill ~2×; the optimizer stacks
   its percentage reduction on top of that cheaper baseline.
@@ -308,13 +308,13 @@ prior Fable report `evals/reports/fable5-2026-06-11-v2-delivery.md`.
 
 ---
 
-## Token Optimizer vs Caveman
+## Flint vs Caveman
 
 Caveman (the upstream project this forks) is excellent at **one** thing: making
-the model *say less*. The Token Optimizer keeps that and adds three more cost
+the model *say less*. Flint keeps that and adds three more cost
 surfaces — so it shrinks the whole bill, not just the reply.
 
-| Capability | Caveman (upstream) | **Token Optimizer (this repo)** |
+| Capability | Caveman (upstream) | **Flint (this repo)** |
 |------------|:------------------:|:-------------------------------:|
 | Output token cut | ~65% (output only) | **76.7% on Opus 4.8** (tuned line) |
 | Same-run head-to-head output | 59.4% | **76.7%** (~43% fewer tokens) |

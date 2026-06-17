@@ -2,11 +2,11 @@
   <img src="https://em-content.zobj.net/source/apple/391/rock_1faa8.png" width="120" />
 </p>
 
-<h1 align="center">Token Optimizer</h1>
+<h1 align="center">Flint</h1>
 
 <p align="center">
-  <strong>why use many token when few do trick</strong><br/>
-  <sub>cut ~77% of Claude's output tokens — full technical accuracy · caveman-powered · built for Opus 4.8</sub>
+  <strong>Strike sharp. Spend less.</strong><br/>
+  <sub>the Claude Code <strong>token-cost optimizer</strong> · why use many token when few do trick · caveman-powered · built for Opus 4.8</sub>
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/hero.png" width="820" alt="Token Optimizer — cut ~77% of Claude's output tokens with full technical accuracy"/>
+  <img src="docs/assets/hero.png" width="820" alt="Flint — cut ~77% of Claude's output tokens with full technical accuracy"/>
 </p>
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes the agent talk like a caveman — cuts **~77% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
