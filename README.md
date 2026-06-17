@@ -37,6 +37,10 @@ A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (al
 
 ## Before / After
 
+<p align="center">
+  <img src="docs/assets/before-after.gif" width="680" alt="Flint compressing a verbose answer into a terse one — 69 to 19 tokens, -72%"/>
+</p>
+
 <table>
 <tr>
 <td width="50%">
