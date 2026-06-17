@@ -5,7 +5,7 @@
 > the cited source**, not "transform existing code from memory". Numbers go into
 > docs only from real runs (CLAUDE.md rule). Repo root:
 > `C:\Users\Usuario\Documents\token-optimizer`. Default branch: `main`
-> (fork `Marcelover777/token-optimizer`; upstream `JuliusBrussee/caveman`, MIT).
+> (fork `Marcelover777/flint`; upstream `JuliusBrussee/caveman`, MIT).
 
 ---
 

@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Marcelover777/token-optimizer/stargazers"><img src="https://img.shields.io/github/stars/Marcelover777/token-optimizer?style=flat&color=yellow" alt="Stars"></a>
-  <a href="https://github.com/Marcelover777/token-optimizer/commits/main"><img src="https://img.shields.io/github/last-commit/Marcelover777/token-optimizer?style=flat" alt="Last Commit"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Marcelover777/token-optimizer?style=flat" alt="License"></a>
+  <a href="https://github.com/Marcelover777/flint/stargazers"><img src="https://img.shields.io/github/stars/Marcelover777/flint?style=flat&color=yellow" alt="Stars"></a>
+  <a href="https://github.com/Marcelover777/flint/commits/main"><img src="https://img.shields.io/github/last-commit/Marcelover777/flint?style=flat" alt="Last Commit"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Marcelover777/flint?style=flat" alt="License"></a>
 </p>
 
 <p align="center">
@@ -130,10 +130,18 @@ Every reply now terse, full accuracy. Stop with `normal mode`. Grunt levels: `/c
 
 Statusline shows `[CAVEMAN] ⛏ 12.4k` — lifetime tokens saved.
 
-> **Squeeze the other surfaces** (optimizer layer):
-> - `/caveman-compress CLAUDE.md --check` — preview safe doc compression (no write, no network)
-> - `/caveman-bench --offline --report` — token + USD report
-> - How it all works → **[docs/OPTIMIZER.md](./docs/OPTIMIZER.md)**
+### Optimizer layer (clone, zero deps)
+
+The `/caveman*` slash commands above ship with the install. The **optimizer CLI** (safe doc compression, USD benchmark, MCP shrink) runs straight from a clone — **no `npm install`, just Node ≥18**:
+
+```bash
+git clone https://github.com/Marcelover777/flint && cd flint
+node src/commands/caveman-compress.js CLAUDE.md --check   # preview, no write, no network
+node src/commands/caveman-bench.js --offline --report     # token + USD report
+node src/commands/caveman-doctor.js --json                # health check
+```
+
+How it all works → **[docs/OPTIMIZER.md](./docs/OPTIMIZER.md)**.
 
 ## Install
 
@@ -318,7 +326,7 @@ Compose: cavekit drive build, caveman compress what agent *say*, cavemem compres
 
 Caveman save you token, save you money. Star cost zero. Fair trade. ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Marcelover777/token-optimizer&type=Date)](https://star-history.com/#Marcelover777/token-optimizer&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Marcelover777/flint&type=Date)](https://star-history.com/#Marcelover777/flint&Date)
 
 ## Also by Julius Brussee
 
