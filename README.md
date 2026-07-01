@@ -33,7 +33,10 @@
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes the agent talk like a caveman — cuts **~77% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
 
 > [!NOTE]
-> **Fork of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).** This repo keeps the full caveman product and adds a **model-aware token-cost optimizer** built for **Claude Opus 4.8** (Fable 5 was retired by Anthropic — the API now says *"not available, please use Opus 4.8"*). On a **real, budgeted Opus 4.8 benchmark** it cut **76.7% of output tokens** (mean; p50 79.3%) with **zero fidelity failures**, plus **15–51% of re-sent doc/context** — surfaces caveman doesn't touch at all. It adds safe doc compression, MCP metadata shrink, adaptive injection, and a budget-guarded USD benchmark. **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** explains how it works, why it doesn't lose quality, and how it compares to caveman. Upstream attribution in [NOTICE](./NOTICE).
+> **Fork of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).** This repo keeps the full caveman product and adds a **model-aware token-cost optimizer**, now targeting **Claude Fable 5** (`claude-fable-5`, Anthropic's current Mythos-class model at $10/$50 per MTok — an earlier note here claiming Fable 5 was retired was wrong; at 2x Opus output pricing every saved token is worth double). On a **real, budgeted Opus 4.8 benchmark** it cut **76.7% of output tokens** (mean; p50 79.3%) with **zero fidelity failures**, plus **15–51% of re-sent doc/context** — surfaces caveman doesn't touch at all. It adds safe doc compression, MCP metadata shrink, adaptive injection, and a budget-guarded USD benchmark. **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** explains how it works. Upstream attribution in [NOTICE](./NOTICE).
+
+> [!TIP]
+> **New: [Flint 2](./flint/) — standalone, project-local, Fable 5-native.** Fully detached from the caveman install layout: one `node flint/install.mjs <project>` drops engine + skills + compact subagents into that project's `.claude/`, auto-activates every session, and adds **agent-loop rules** (final-message cap, ≤1 line between tool calls, never re-print code/diffs) — the surfaces where agentic sessions actually burn output. Extended local compressor (EN + PT-BR): **14.4%** prose-heavy EN / **9.9%** PT-BR / **10.8%** mixed, local-only, zero network, validation-gated. 48/48 tests. **→ [flint/README.md](./flint/README.md)**
 
 ## Before / After
 
@@ -173,7 +176,7 @@ Install break? Open agent, say *"Read CLAUDE.md and INSTALL.md, install caveman 
 | `/caveman [lite\|full\|ultra\|wenyan]` | Compress every reply. Levels stick until session end. |
 | `/caveman-commit` | Conventional Commit messages, ≤50 char subject. Why over what. |
 | `/caveman-review` | One-line PR comments: `L42: 🔴 bug: user null. Add guard.` |
-| `/caveman-stats` | Real session token usage + lifetime savings + model-aware USD (Opus 4.8 default). JSON via `--json`, tweetable line via `--share`. |
+| `/caveman-stats` | Real session token usage + lifetime savings + model-aware USD (Fable 5 default). JSON via `--json`, tweetable line via `--share`. |
 | `/caveman-compress <file>` | Local-first safe memory compression. Code/URLs/paths byte-preserved. LLM compression opt-in via `--llm` (default `claude-sonnet-4-6`). |
 | `/caveman-doctor` | Checks hooks, config, statusline, MCP shrink, pricing, secret scanner, token-count readiness. |
 | `/caveman-bench` | Offline eval/bench report; budgeted Opus 4.8 online path when API key exists. |
@@ -206,10 +209,12 @@ Real token counts from the Claude API. Average **65% output reduction** across 1
 
 Raw data and reproduction script: [`benchmarks/`](./benchmarks/). Three-arm eval harness (baseline / terse / skill) lives in [`evals/`](./evals/) — caveman compared against `Answer concisely.` not against verbose default, so the delta is honest.
 
-### Opus 4.8 token-cost optimizer
+### Model-aware token-cost optimizer (Fable 5 default)
 
-> **Fable 5 was retired** — the API answers `claude-fable-5` with *"not
-> available, please use Opus 4.8."* The optimizer now defaults to Opus 4.8.
+> Default target is **`claude-fable-5`** ($10/$50 per MTok — verified pricing
+> table also covers Opus 4.8/4.7, Sonnet 4.6, Haiku 4.5 and any Claude via
+> longest-prefix match). The Opus 4.8 benchmark below still stands; on Fable 5
+> the same output cut is worth 2x in USD.
 
 A **model-aware token-cost optimizer** sits on top of caveman. It attacks four
 surfaces — model output, re-sent context/docs, MCP tool metadata, and
@@ -220,7 +225,7 @@ measurement — and prices the result for the model you actually ran:
 </p>
 
 - micro-inject by default for Claude Code SessionStart, with full skill fallback via config;
-- `/caveman-stats --json` reports input/output/cache tokens and USD cost for `claude-opus-4-8` (default), `claude-sonnet-4-6`, `claude-haiku-4-5`, and any Claude model (longest-prefix pricing);
+- `/caveman-stats --json` reports input/output/cache tokens and USD cost for `claude-fable-5` (default), `claude-opus-4-8`, `claude-sonnet-4-6`, `claude-haiku-4-5`, and any Claude model (longest-prefix pricing);
 - `/caveman-compress --local-only` runs with no network; `--llm` is opt-in (default backend `claude-sonnet-4-6`), with protected spans, secret-scan abort, per-section validation + one repair pass + safe fallback, and a `--max-llm-usd` spend cap;
 - `/caveman-bench --online --model claude-opus-4-8` re-benchmarks against Opus directly (budget-guarded, hard $15 cap);
 - `caveman-shrink` preserves `inputSchema`, never mutates `tools/call`, and supports newline JSON + `Content-Length` framing.

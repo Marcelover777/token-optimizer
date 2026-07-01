@@ -47,5 +47,10 @@ test('offline report includes injection overhead estimates', () => {
   const report = offlineReport();
   assert.equal(report.mode, 'offline');
   assert.ok(report.injection_overhead.micro_full_line_tokens > 0);
-  assert.ok(report.injection_overhead.micro_full_line_tokens <= report.injection_overhead.v1_micro_full_line_tokens + 10);
+  // The Fable-tuned MICRO line deliberately spends more injected tokens than
+  // the V1 line (~85 vs ~52 estimated) to carry the agent-loop rules
+  // (final-message cap, no tool narration, no code re-printing) that dominate
+  // savings in agentic sessions. Guard against runaway growth instead of
+  // pinning to the V1 size.
+  assert.ok(report.injection_overhead.micro_full_line_tokens <= 95);
 });

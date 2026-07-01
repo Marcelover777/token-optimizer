@@ -77,4 +77,4 @@ Code/commits/PRs: write normal. "stop caveman" or "normal mode": revert. Level p
 
 ## Optimizer note
 
-The token-cost optimizer may inject compact `MICRO.md` rules instead of this full skill during Claude Code SessionStart. Same behavior target, lower input overhead. Caveman reduces visible output and repeated context; it does not reduce hidden adaptive thinking tokens directly. Use `/caveman-stats --json` for model-aware USD estimates (Opus 4.8 by default, any Claude model via pricing table).
+The token-cost optimizer may inject compact `MICRO.md` rules instead of this full skill during Claude Code SessionStart. Same behavior target, lower input overhead. Caveman reduces visible output and repeated context; it does not reduce hidden adaptive thinking tokens directly. Use `/caveman-stats --json` for model-aware USD estimates (Fable 5 by default, any Claude model via pricing table).

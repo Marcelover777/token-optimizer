@@ -22,9 +22,11 @@ const VALID_MODES = [
 const DEFAULT_CONFIG = {
   schema_version: 1,
   defaultMode: 'full',
-  // Fable 5 was retired by Anthropic ("not available, please use Opus 4.8"), so
-  // the default target is Opus 4.8. Override with CAVEMAN_TARGET_MODEL or config.
-  targetModel: 'claude-opus-4-8',
+  // Fable 5 (claude-fable-5) is Anthropic's current Mythos-class model — the
+  // earlier "retired" note was wrong. At $10/$50 per MTok its output costs 2x
+  // Opus 4.8, so savings are worth double there. Override with
+  // CAVEMAN_TARGET_MODEL or config if your sessions run another model.
+  targetModel: 'claude-fable-5',
   injection: {
     strategy: 'adaptive',
     sessionStart: 'micro',
@@ -42,7 +44,7 @@ const DEFAULT_CONFIG = {
     // Compression backend is a one-time, amortized cost on docs you reuse
     // forever, so default to a capable-but-cheap model rather than the pricey
     // session model. Sonnet 4.6 preserves quality and the validator/fallback
-    // catches any miss. (Was Fable 5, now retired.)
+    // catches any miss.
     llmModel: 'claude-sonnet-4-6',
     minLocalSavingsToSkipLLM: 0.35,
     cache: true,
